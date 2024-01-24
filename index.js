@@ -1,29 +1,40 @@
-const express =require('express');
-//const dbConn = require('./dbConn.js');
+const express = require('express');
+const PaymentRouter = require('./routes/paymentRoutes');
+const dbConn = require('./dbConn.js');
+const routeDoc = require('./routeDoc.json');
+const cors = require('cors');
+
 
 const app = express();
-const port = 8081;
+app.use(cors);
 
-//dbConn();
+const port = process.env.PORT || 8081;
 
-app.use(express.json());
+const startServer = async() => {
+    await dbConn();
 
-// Default Route
-app.get("/",(req,res)=>{
-    res.status(200).json({
-        message: "MockPay is Running!",
-    })
-});
+    app.use(express.json());
 
-// Adding Route Modules
-
-// Unknown Routes
-app.get("*",(req,res)=>{
-    res.status(404).json({
-        message: "This Route doesn't exist",
+    // Default Route
+    app.get("/", (req, res) => {
+      res.status(200).json({
+        Documentation:routeDoc,
+      });
     });
-});
 
-app.listen(port, ()=>{
-    console.log(`Server started at http://127.0.0.1:${port}`)
-})
+    // Adding Route Modules
+    app.use("/payment", PaymentRouter);
+
+    // Unknown Routes
+    app.get("*", (req, res) => {
+      res.status(404).json({
+        message: "This Route doesn't exist",
+      });
+    });
+
+    app.listen(port, () => {
+      console.log(`Server started at http://127.0.0.1:${port}`);
+    });
+}
+
+startServer();

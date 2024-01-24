@@ -1,5 +1,5 @@
 
-const isCardValid = (month, year) => {
+const isCardValid = (year, month) => {
   var expirationDate = new Date(`${year}-${month}-01`);
   expirationDate.setMonth(expirationDate.getMonth() + 1, 0);
   var todayDate = new Date();

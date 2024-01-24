@@ -1,0 +1,40 @@
+{
+    "Name":"Mock-API",
+    "Version":"1.0.0",
+    "Author":"DiyRex",
+    "RepoURL":"https://github.com/DiyRex/MockPay-API",
+    "Routes":[{
+      "Get payment record by ID": {
+        "Method": "GET",
+        "Route": "/payment/pay/{id}",
+        "Response":"200"
+      },
+      "Initiate a payment": {
+        "Method": "POST",
+        "Route": "/payment/pay/",
+        "Body": {
+          "amount": "Amount(int)",
+          "currency": "Currency_type(String)",
+          "payment_method": "Payment_method(String)"
+        },
+        "Response": "201"
+      },
+      "Complete initiated payment": {
+        "Method": "PUT",
+        "Route": "/payment/pay/{id}",
+        "Body": {
+          "card_number": "XXXX XXXX XXXX XXXX(String)",
+          "exp_year": "YYYY(String)",
+          "exp_month": "MM(String)",
+          "ccv": "XXX(String)",
+          "cardholder_name": "Name(String)"
+        },
+        "Response": "201"
+      },
+      "Delete payment record by ID": {
+        "Method": "DELETE",
+        "Route": "/payment/pay/{id}",
+        "Response": "200"
+      }
+    }]
+}
