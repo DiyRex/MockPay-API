@@ -1,0 +1,282 @@
+<!-- views/paymentPage.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complete Your Payment</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-gray-100 flex justify-center items-center h-screen">
+    <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-lg">
+      <% if (payment.payment_status === "completed") { %>
+      <!-- Show message if payment is completed -->
+      <h2 class="text-center font-bold text-2xl text-green-600 mb-4">
+        Payment Already Completed
+      </h2>
+      <p class="text-center text-md text-gray-700 mb-4">
+        Your payment has already been processed.
+      </p>
+      <% } else { %>
+      <!-- Show the form if payment is not completed -->
+      <h1 class="text-3xl font-bold text-center text-blue-600 mb-6">
+        Complete Your Payment
+      </h1>
+      <p class="text-center text-md text-gray-700 mb-4">
+        Reference ID: <%= payment.reference_id %>
+      </p>
+      <h3 class="text-center font-bold text-2xl text-gray-700 mb-4">
+        Amount: <%= payment.amount %> <%= payment.currency %>
+      </h3>
+
+      <form
+        action="/payment/pay/<%= payment._id %>"
+        method="POST"
+        id="paymentForm"
+        class="space-y-6"
+      >
+        <div>
+          <label
+            for="card_number"
+            class="block text-sm font-medium text-gray-600"
+            >Card Number</label
+          >
+          <input
+            type="text"
+            id="card_number"
+            name="card_number"
+            maxlength="16"
+            minlength="15"
+            required
+            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Enter your card number"
+          />
+        </div>
+
+        <div class="flex space-x-4">
+          <div class="flex-1">
+            <label
+              for="exp_month"
+              class="block text-sm font-medium text-gray-600"
+              >Expiration Month</label
+            >
+            <input
+              type="text"
+              id="exp_month"
+              name="exp_month"
+              maxlength="2"
+              minlength="2"
+              required
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              placeholder="MM"
+            />
+          </div>
+          <div class="flex-1">
+            <label
+              for="exp_year"
+              class="block text-sm font-medium text-gray-600"
+              >Expiration Year</label
+            >
+            <input
+              type="text"
+              id="exp_year"
+              name="exp_year"
+              maxlength="2"
+              minlength="2"
+              required
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              placeholder="YY"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="ccv" class="block text-sm font-medium text-gray-600"
+            >CCV</label
+          >
+          <input
+            type="text"
+            id="ccv"
+            name="ccv"
+            maxlength="3"
+            minlength="3"
+            required
+            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Enter CCV"
+          />
+        </div>
+
+        <div>
+          <label
+            for="cardholder_name"
+            class="block text-sm font-medium text-gray-600"
+            >Cardholder Name</label
+          >
+          <input
+            type="text"
+            id="cardholder_name"
+            name="cardholder_name"
+            required
+            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Enter cardholder's name"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          Pay Now
+        </button>
+      </form>
+      <% } %>
+    </div>
+
+    <!-- Success Modal -->
+    <div
+      id="successModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden"
+    >
+      <div
+        class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center"
+      >
+        <!-- Green Circle with Checkmark -->
+        <div
+          class="flex justify-center items-center bg-green-500 rounded-full w-16 h-16 mx-auto mb-4"
+        >
+          <!-- Checkmark using Font Awesome -->
+          <i class="fas fa-check text-white text-4xl"></i>
+        </div>
+        <!-- Success Message -->
+        <h2 class="text-2xl font-semibold text-green-600 mb-4">
+          Payment Successful!
+        </h2>
+        <p class="text-lg mb-4">
+          Your payment has been successfully processed.
+        </p>
+        <button
+          id="closeModal"
+          class="w-full py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700"
+        >
+          Proceed
+        </button>
+      </div>
+    </div>
+
+    <!-- Unsuccessful Payment Modal -->
+    <div
+      id="errorModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden"
+    >
+      <div
+        class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center"
+      >
+        <!-- Red Circle with Cross Icon -->
+        <div
+          class="flex justify-center items-center bg-red-500 rounded-full w-16 h-16 mx-auto mb-4"
+        >
+          <!-- Cross using Font Awesome -->
+          <i class="fas fa-times text-white text-4xl"></i>
+        </div>
+        <!-- Error Message -->
+        <h2 class="text-2xl font-semibold text-red-600 mb-4">
+          Payment Failed!
+        </h2>
+        <p class="text-lg mb-4">
+          There was an issue with your payment. Please try again.
+        </p>
+        <button
+          id="closeErrorModal"
+          class="w-full py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+
+    <!-- JavaScript to handle form submission and modal display -->
+    <script>
+      const redirectCallbackUrl = "<%= process.env.REDIRECT_CALLBACK_URL %>";
+      const redirectUrl = "<%= process.env.REDIRECT_URL %>";
+      const apiKey = "<%= process.env.PAYMENT_API_KEY %>";
+      document
+        .getElementById("paymentForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(this);
+
+          fetch(`/payment/pay/<%= payment._id %>`, {
+            method: "PUT",
+            body: new URLSearchParams(formData),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                // Show the success modal
+                document
+                  .getElementById("successModal")
+                  .classList.remove("hidden");
+
+                // Send the POST request to process.env.REDIRECT_CALLBACK_URL with payment data
+                document
+                  .getElementById("closeModal")
+                  .addEventListener("click", function () {
+                    const paymentReferenceId = "<%= payment.reference_id %>"; // Payment reference_id
+                    const status = "success"; // Payment status
+                    // Send POST request to the callback URL
+                    fetch(redirectCallbackUrl, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        'x-api-key': apiKey,
+                      },
+                      body: JSON.stringify({
+                        reference_id: paymentReferenceId, // Payment reference_id (order ID)
+                        paymentStatus: status, // Payment status
+                      }),
+                    })
+                      .then((response) => response.json())
+                      .then((responseData) => {
+                        // Redirect to process.env.REDIRECT_URL after successful callback processing
+                        if (responseData.status == "success") {
+                          window.location.href = redirectUrl; // Redirect user to final success page
+                        } else {
+                          console.log(responseData);
+                          alert("There was an issue processing your payment.");
+                        }
+                      })
+                      .catch((error) => {
+                        console.error("Error sending callback:", error);
+                        alert("Error processing callback.");
+                      });
+                  });
+              } else {
+                // Show the error modal
+                document
+                  .getElementById("errorModal")
+                  .classList.remove("hidden");
+
+                // Handle closing the error modal
+                document
+                  .getElementById("closeErrorModal")
+                  .addEventListener("click", function () {
+                    // Hide error modal and allow the user to try again or go back
+                    document
+                      .getElementById("errorModal")
+                      .classList.add("hidden");
+                  });
+              }
+            })
+            .catch((error) => {
+              alert("Payment error: " + error.message);
+            });
+        });
+    </script>
+  </body>
+</html>

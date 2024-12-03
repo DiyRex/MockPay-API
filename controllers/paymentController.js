@@ -2,6 +2,61 @@ const PaymentModel = require("../models/PaymentSchema");
 const {getCardType} = require('../helpers/cardCategorize');
 const { isCardValid } = require("../helpers/cardExpDate");
 
+
+const initiatePaymentSession = async (req, res) => {
+  const { amount, currency, reference_id } = req.body;
+
+  try {
+    const newPayment = await PaymentModel.create({
+      amount,
+      currency,
+      reference_id,
+      payment_method: "card",
+      payment_status: "pending",
+    });
+
+    const paymentId = newPayment._id;
+
+    const paymentPageUrl = `${process.env.APP_URL}/payment/pay/${paymentId}`;
+    return res.status(200).json({
+      success: true,
+      paymentUrl: paymentPageUrl, // URL where the user can go to complete payment
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to initiate payment",
+    });
+  }
+};
+
+const getPaymentPage = async (req, res) => {
+  const { PaymentId } = req.params;
+
+  try {
+    const paymentRecord = await PaymentModel.findById(PaymentId);
+
+    if (!paymentRecord) {
+      return res.status(404).json({
+        success: false,
+        message: "Payment record not found",
+      });
+    }
+
+    // Render the payment form with the payment data (amount, currency, etc.)
+    return res.render('paymentPage', {
+      payment: paymentRecord,  // Pass the payment record data to the HTML page
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch payment details",
+    });
+  }
+};
+
 const getPayment = async(req,res) => {
     const {PaymentId} = req.params;
     try{
@@ -59,26 +114,20 @@ const updatePayment = async (req, res) => {
         message: "Payment not found",
       });
     }
+    console.log(isCardValid(cardDetailsData.exp_year, cardDetailsData.exp_month))
     if (
-      getCardType(cardDetailsData.card_number) != "invalid" &&
+      getCardType(cardDetailsData.card_number) !== "invalid" &&
       isCardValid(cardDetailsData.exp_year, cardDetailsData.exp_month)
     ) {
-        console.log("inside");
       PaymentDocument.payment_status = "completed";
-      PaymentDocument.card_details.card_type = getCardType(
-        cardDetailsData.card_number
-      );
-      PaymentDocument.card_details.card_number = cardDetailsData.card_number;
-      PaymentDocument.card_details.exp_year = cardDetailsData.exp_year;
-      PaymentDocument.card_details.exp_month = cardDetailsData.exp_month;
-      PaymentDocument.card_details.ccv = cardDetailsData.ccv;
-      PaymentDocument.card_details.cardholder_name =
-        cardDetailsData.cardholder_name;
+      PaymentDocument.card_details = { ...cardDetailsData };
       await PaymentDocument.save();
+      console.log("validated")
+      // Redirect back to e-commerce site after successful payment
       return res.status(201).json({
         success: true,
         message: "Payment completed successfully",
-        pay_id: PaymentId,
+        redirectUrl: "http://localhost:8083/order-success",  // Redirect to order success page
       });
     } else {
       PaymentDocument.payment_status = "failed";
@@ -86,7 +135,6 @@ const updatePayment = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid Card Number",
-        error: error.message,
       });
     }
   } catch (error) {
@@ -114,4 +162,4 @@ const deletePayment = async (req,res) => {
     }
 };
 
-module.exports = { Payment, getPayment, updatePayment, deletePayment };
+module.exports = { Payment, getPayment, updatePayment, deletePayment, initiatePaymentSession, getPaymentPage };

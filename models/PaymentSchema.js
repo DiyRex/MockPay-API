@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const PaymentSchema = new mongoose.Schema(
   {
+    reference_id: {
+      type: String,
+      required: true,
+    },
     amount: {
       type: Number,
       required: true,
