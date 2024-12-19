@@ -230,15 +230,14 @@
                     const paymentReferenceId = "<%= payment.reference_id %>"; // Payment reference_id
                     const status = "success"; // Payment status
                     // Send POST request to the callback URL
-                    fetch(redirectCallbackUrl, {
+                    fetch("/payment/callback", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
-                        'x-api-key': apiKey,
                       },
                       body: JSON.stringify({
-                        reference_id: paymentReferenceId, // Payment reference_id (order ID)
-                        paymentStatus: status, // Payment status
+                        reference_id: paymentReferenceId,
+                        paymentStatus: status,
                       }),
                     })
                       .then((response) => response.json())

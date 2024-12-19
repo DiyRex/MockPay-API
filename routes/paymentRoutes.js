@@ -1,5 +1,5 @@
 const express = require('express');
-const {Payment, getPayment, updatePayment, deletePayment, initiatePaymentSession, getPaymentPage} = require('../controllers/paymentController');
+const {Payment, getPayment, updatePayment, deletePayment, initiatePaymentSession, getPaymentPage, callbackPayment} = require('../controllers/paymentController');
 
 const router = express.Router();
 router.get("/pay/:PaymentId", getPaymentPage)
@@ -8,6 +8,8 @@ router.put("/pay/:PaymentId", updatePayment);
 router.delete("/pay/:PaymentId", deletePayment);
 
 router.post("/initiate", initiatePaymentSession);
+
+router.post('/callback', callbackPayment);
 
 // Serve the payment form HTML (for client-side payment flow)
 router.get('/form', (req, res) => {

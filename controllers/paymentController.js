@@ -162,4 +162,23 @@ const deletePayment = async (req,res) => {
     }
 };
 
-module.exports = { Payment, getPayment, updatePayment, deletePayment, initiatePaymentSession, getPaymentPage };
+const callbackPayment = async (req, res) => {
+  try {
+    const response = await fetch(process.env.REDIRECT_CALLBACK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.PAYMENT_API_KEY,
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error in callback proxy:', error);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+}
+
+module.exports = { Payment, getPayment, updatePayment, deletePayment, initiatePaymentSession, getPaymentPage, callbackPayment };
